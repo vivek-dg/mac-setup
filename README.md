@@ -12,6 +12,7 @@ I've already installed a few apps and programs on my mac. This is just some note
   - brew install scala
   - brew install git
   - brew install ruby
+  - brew install heroku-toolbelt
 * Java sdk from Oracle
 * STS from spring for Java
 * IntelliJ Community Edition for Scala
