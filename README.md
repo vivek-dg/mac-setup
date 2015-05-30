@@ -11,7 +11,7 @@ I've already installed a few apps and programs on my mac. This is just some note
   - brew install maven
   - brew install scala
   - brew install git
-  - brew install ruby
+  - brew install ruby - NOOOO. Ruby needs to be installed through rvm / rbenv
   - brew install heroku-toolbelt
     * brew upgrade heroku-toolbelt
 * Java sdk from Oracle
