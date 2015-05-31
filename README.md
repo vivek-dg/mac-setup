@@ -10,6 +10,7 @@ I've already installed a few apps and programs on my mac. This is just some note
 * Homebrew! - definitely a must have for easy installs
   - brew install maven
   - brew install scala
+    * brew install sbt
   - brew install git
   - brew install ruby - NOOOO. Ruby needs to be installed through rvm / rbenv
   - brew install heroku-toolbelt
