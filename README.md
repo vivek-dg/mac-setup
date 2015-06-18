@@ -16,6 +16,7 @@ I've already installed a few apps and programs on my mac. This is just some note
   - brew install heroku-toolbelt
     * brew upgrade heroku-toolbelt
   - Finally say 'brew list' to list all packages installed by brew!
+  - brew install homebrew/science/octave   - this is cool stuff
 * Java sdk from Oracle
 * STS from spring for Java
 * IntelliJ Community Edition for Scala
