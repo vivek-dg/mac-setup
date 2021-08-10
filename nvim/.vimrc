@@ -4,9 +4,9 @@ set nocompatible
 
 let mapleader = ','
 
-" """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" start Vim-Plug
-" """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ==> start Vim-Plug
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Install vim-plug if not found
 if empty(glob('~/.vim/autoload/plug.vim'))
@@ -73,9 +73,9 @@ if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
 	autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
-" """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" end Vim-Plug
-" """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ==> end Vim-Plug
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
 """"""""""""""""""""""""""""""""""""""""
@@ -120,7 +120,9 @@ set number " show the number for the line where the cursor lives
 set relativenumber	" the line numbers will be relative
 set signcolumn=yes
 
-" Setup the status line
+"""""""""""""""""""""""""""""
+" ==> Setup the status line
+"""""""""""""""""""""""""""""
 lua << EOF
 
 -- Lualine setup for status line
@@ -135,7 +137,9 @@ options = {
 require 'colorizer'.setup()
 
 EOF
-
+""""""""""""""""""""""""""""""
+" ==> End Lua code
+""""""""""""""""""""""""""""""
 
 if isdirectory(expand('~/.vim/plugged/fzf')) || executable('fzf')
 	" PLUGIN: FZF
@@ -180,8 +184,8 @@ endif
 """"""""""""""""""""""""""""""""""
 " Python support for NeoVim
 """"""""""""""""""""""""""""""""""
-let g:python_host_prog = expand('/.pyenv/shims/python2)'
-let g:python3_host_prog = expand('/.pyenv/shims/python3)'
+let g:python_host_prog = expand('/.pyenv/shims/python2')
+let g:python3_host_prog = expand('/.pyenv/shims/python3')
 
 """"""""""""""""""""""""""""""""""
 " Node support for NeoVim
@@ -355,7 +359,7 @@ endif " has autocmd
 nnoremap <leader>so :source %<CR>
 
 
-""""""""""">"""""""""""""""""""""
+""""""""""""""""""""""""""""""""
 " ==> Whitespace and Indentation
 """"""""""""""""""""""""""""""""
 " Execute <leader>$ for removing all whitespace at the end of line for the entire
