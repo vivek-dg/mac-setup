@@ -9,28 +9,27 @@ let mapleader = ','
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Install vim-plug if not found
-if empty(glob(stdpath('data').'/site/autoload/plug.vim'))
-	silent !curl -fLo stdpath('data').'/site/autoload/plug.vim/' --create-dirs
-				\ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+let autoload_plug_path = stdpath('data') . '/site/autoload/plug.vim'
+if !filereadable(autoload_plug_path)
+	silent execute '!curl -fLo ' . autoload_plug_path . '  --create-dirs
+				\ "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"'
 endif
-
+unlet autoload_plug_path
 
 " List the actual plugins that you need to install here
 call plug#begin(stdpath('data').'/plugged')
 
 " Colorschemes
-Plug 'morhetz/gruvbox'
-Plug 'dracula/vim'
+"Plug 'morhetz/gruvbox'
+"Plug 'dracula/vim'
+"Plug 'altercation/vim-colors-solarized'
 Plug 'lifepillar/vim-solarized8'
 "Plug 'freeo/vim-kalisi'
 "Plug 'arzg/vim-colors-xcode'
 "Plug 'chriskempson/base16-vim'
 
 " Colorizer
-"Plug 'norcalli/nvim-colorizer.lua'
-
-" Status Line
-Plug 'hoob3rt/lualine.nvim'
+Plug 'norcalli/nvim-colorizer.lua'
 
 " Java syntax
 Plug 'uiiaoo/java-syntax.vim'
@@ -55,18 +54,38 @@ Plug 'godlygeek/tabular'
 Plug 'dstein64/vim-startuptime'
 
 " LSP enable
-Plug 'prabirshrestha/vim-lsp'
-Plug 'mattn/vim-lsp-settings'
+"Plug 'prabirshrestha/vim-lsp'
+"Plug 'mattn/vim-lsp-settings'
 
 " Enable autocomplete
-Plug 'prabirshrestha/asyncomplete.vim'
-Plug 'prabirshrestha/asyncomplete-lsp.vim'
-
+"Plug 'prabirshrestha/asyncomplete.vim'
+"Plug 'prabirshrestha/asyncomplete-lsp.vim'
+"
 " Latex
 "Plug 'lervag/vimtex'
 
-" Icons for display within editor
+Plug 'neovim/nvim-lspconfig'
+Plug 'simrat39/rust-tools.nvim'
+
+" Optional dependencies
+Plug 'nvim-lua/popup.nvim'
+" Telescope
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+
+" Debugging (needs plenary from above as well)
+Plug 'mfussenegger/nvim-dap'
+Plug 'rcarriga/nvim-dap-ui'
+Plug 'nvim-telescope/telescope-dap.nvim'
+
+" Status Line
+Plug 'hoob3rt/lualine.nvim'
+
+" Icons for vim
 Plug 'ryanoasis/vim-devicons'
+
+" Markdown support
+Plug 'iamcco/markdown-preview.nvim', {'do': 'cd app && yarn install'}
 
 call plug#end()
 
@@ -75,9 +94,9 @@ if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
 	autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
-" """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ==> end Vim-Plug
-" """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
 """"""""""""""""""""""""""""""""""""""""
@@ -87,13 +106,10 @@ endif
 " solarized options
 if has("gui_running")
 	set background=light
-	set termguicolors
-
-	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-	"colorscheme gruvbox
-	
-	colorscheme solarized8_high
+	"let g:solarized_termtrans  = 1
+	"let g:solarized_termcolors = 256
+	"colorscheme solarized8_high
+	colorscheme solarized
 else
 	set background=light
 
@@ -102,11 +118,13 @@ else
 	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 	"colorscheme gruvbox
 
-	"colorscheme dracula
+	"	colorscheme dracula
 	"colorscheme kalisi
 
 	colorscheme solarized8_high
-	"colorscheme xcodelight
+	"	colorscheme solarized
+
+	"	colorscheme xcodelighthc
 endif
 
 " Using Base16 to control colorscheme
@@ -115,20 +133,33 @@ endif
 "    source ~/.vimrc_background
 "endif
 
-""""""""""""""""""""""""""""""""""""""""
-" ==> end color scheme
-""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""
+" ==> end colorscheme
+"""""""""""""""""""""""""""""""""
 
 
+" Use fontawesome icons as signs
+let g:gitgutter_sign_added = ''
+let g:gitgutter_sign_modified = ''
+let g:gitgutter_sign_removed = ''
+let g:gitgutter_sign_removed_first_line = ''
+let g:gitgutter_sign_modified_removed = ''
+
+" Always show the status line
+"set laststatus=2
 
 " set the line number
 set number " show the number for the line where the cursor lives
 set relativenumber	" the line numbers will be relative
 set signcolumn=yes
 
-""""""""""""""""""""""""""""""""""""
-" ==> Fuzzy Finder
-""""""""""""""""""""""""""""""""""""
+
+" Find files using Telescope command-line sugar.
+nnoremap <leader>ff <cmd>Telescope find_files<cr>
+nnoremap <leader>fg <cmd>Telescope live_grep<cr>
+nnoremap <leader>fb <cmd>Telescope buffers<cr>
+nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 
 if isdirectory(expand('~/.vim/plugged/fzf')) || executable('fzf')
 	" PLUGIN: FZF
@@ -153,14 +184,9 @@ if isdirectory(expand('~/.vim/plugged/fzf')) || executable('fzf')
 		command! -bang -complete=dir -nargs=? FD
 					\ call fzf#run(fzf#wrap('fd', {'source':'fd -td', 'dir': <q-args>, 'sink': 'cd'}, <bang>0))
 
-		nnoremap <silent> <leader>fd :FD<space>
+		nnoremap <silent> <leader>fd :FD ~<CR>
 	endif
 endif
-
-
-"""""""""""""""""""""""""""""""""""""""""""
-" ==> Ripgrep for searching file contents
-"""""""""""""""""""""""""""""""""""""""""""
 
 if executable('rg')
 	set grepprg=rg\ --vimgrep\ --smart-case\ --follow
@@ -190,7 +216,6 @@ let g:node_host_prog = expand('/usr/local/lib/node_modules/neovim/bin/cli.js')
 " ==> vimtex support for NeoVim
 """"""""""""""""""""""""""""""""""
 "let g:vimtex_compiler_progname = 'nvr'
-
 
 """"""""""""""""""""""""""""""""""
 " ==> AsyncComplete's shortcuts
@@ -237,7 +262,9 @@ if executable('rls')
 				\ 'whitelist': ['rust'],
 				\ })
 endif
-
+"""""""""""""""""""""""""""""
+" end LSP config
+"""""""""""""""""""""""""""""
 
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
@@ -253,7 +280,7 @@ set history=50		" keep 50 lines of command line history
 set showcmd		" display incomplete commands
 set incsearch		" do incremental searching
 
-set encoding=utf-8
+set encoding=UTF-8
 "set fileencoding=utf-8
 
 "For Win32 GUI: remove 't' flag from 'guioptions': no tearoff menu entries
@@ -324,12 +351,7 @@ else
 	set autoindent		" always set autoindenting on
 endif " has("autocmd")
 
-
-
-""""""""""""""""""""""""""""""
-" ==> Convenient Diffs
-""""""""""""""""""""""""""""""
-" Command to see the difference between the current buffer and the
+" Convenient command to see the difference between the current buffer and the
 " file it was loaded from, thus the changes you made.
 " Only define it when not defined already.
 if !exists(":DiffOrig")
@@ -337,15 +359,10 @@ if !exists(":DiffOrig")
 				\ | wincmd p | diffthis -c 'set diffopt+=iwhite'
 endif
 
-
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" ==>
-" Prevent that the langmap option applies to characters that result from a
-" mapping.  If unset (default), this may break plugins (but it's backward
-" compatible).
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 if has('langmap') && exists('+langnoremap')
+	" Prevent that the langmap option applies to characters that result from a
+	" mapping.  If unset (default), this may break plugins (but it's backward
+	" compatible).
 	set langnoremap
 endif
 
@@ -382,7 +399,6 @@ function! <SID>Preserve(command)
 	call cursor(l, c)
 endfunction
 
-
 "Clean Trailing WhiteSpaces
 function! <SID>ClearWhiteSpaces()
 	call <SID>Preserve("%s/\\s\\+$//e")
@@ -408,16 +424,17 @@ nnoremap <leader>cd :lcd %:p:h<CR>:pwd<CR>
 """"""""""""""""""""""""""""""""
 " ==> Invisible Chars
 """"""""""""""""""""""""""""""""
+
 " Shortcut to rapidly toggle `set list`
 nmap <leader>l :set list!<CR>
 
 " Use the same symbols as TextMate for tabstops and EOLs
 set listchars=tab:▸\ ,eol:¬
 
-
 """"""""""""""""""""""""""""""""
 " ==> tabstop
 """"""""""""""""""""""""""""""""
+
 " Set tabstop, softtabstop and shiftwidth to the same value
 command! -nargs=* Stab call Stab()
 function! Stab()
@@ -470,7 +487,6 @@ augroup CursorLine
 augroup END
 
 
-""""""""""""""""""""""""""""""""""
 " ==> Clearing Registers
 """"""""""""""""""""""""""""""""""
 function! ClearRegisters()
@@ -480,12 +496,12 @@ function! ClearRegisters()
 	endfor
 endfunction
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ==> Copy current line and paste to new buffer in a new window
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 nnoremap <silent> <F3> :redir @a<CR>:normal! Y<CR>:redir END<CR>:vnew<CR>:put! "a<CR>
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ==> open splits to the right and to the bottom
 """""""""""""""""""""""""""""""""""""""""""""""""""""""
 set splitbelow
@@ -494,7 +510,7 @@ set splitright
 set title
 
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ==> Terminal mode key map for Neovim
 """""""""""""""""""""""""""""""""""""""""""""""""""""""
 "To map <Esc> to exit terminal-mode:
@@ -504,10 +520,27 @@ tnoremap <Esc> <C-\><C-n>
 tnoremap <expr> <C-R> '<C-\><C-N>"'.nr2char(getchar()).'pi'
 
 
-"""""""""""""""""""""""""""""""""""""""""
-" ==> Lua Based Config
-"""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""
+" ==> DAP shortcuts
+""""""""""""""""""""""""""""""""""
+nnoremap <silent> <F5> :lua require'dap'.continue()<CR>
+nnoremap <silent> <F10> :lua require'dap'.step_over()<CR>
+nnoremap <silent> <F11> :lua require'dap'.step_into()<CR>
+nnoremap <silent> <F12> :lua require'dap'.step_out()<CR>
+nnoremap <silent> <leader>dso :lua require'dap'.step_over()<CR>
+nnoremap <silent> <leader>dsi :lua require'dap'.step_into()<CR>
+nnoremap <silent> <leader>dsu :lua require'dap'.step_out()<CR>
+nnoremap <silent> <leader>b :lua require'dap'.toggle_breakpoint()<CR>
+nnoremap <silent> <leader>B :lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>
+nnoremap <silent> <leader>lp :lua require'dap'.set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>
+nnoremap <silent> <leader>dr :lua require'dap'.repl.open()<CR>
+nnoremap <silent> <leader>dl :lua require'dap'.run_last()<CR>
 
+
+
+"""""""""""""""""""""""""""""
+" ==> Setup the status line
+"""""""""""""""""""""""""""""
 lua << EOF
 
 -- Lualine setup for status line
@@ -516,6 +549,8 @@ require'lualine'.setup {
 	options = {
 		icons_enabled = true,
 		theme = 'dracula',
+		--component_separators = {'', ''},
+		--section_separators = {'', ''},
 		component_separators = '',
 		section_separators = '',
 		disabled_filetypes = {}
@@ -540,8 +575,118 @@ require'lualine'.setup {
 	extensions = {}
 	}
 
-
 -- Attaches to every FileType mode
--- require 'colorizer'.setup()
+require 'colorizer'.setup()
+
+
+-- Rust tools
+
+require('rust-tools').setup()
+
+--------------------------------------------------------------------
+-- DAP tool for debugging - Needs individual setup for each language
+-- Requires 1. Adapter per language
+--			2. Config per language
+--------------------------------------------------------------------
+
+require('dap').set_log_level('DEBUG')
+
+-- set this variable to lldb or gdb according your preference
+local debugger_for_rust = 'gdb'
+
+if debugger_for_rust == 'lldb' then
+
+	-- Rust / c / c++ : Adapter
+	local dap = require('dap')
+	dap.adapters.lldb = {
+		type = 'executable',
+		command = '/usr/bin/lldb-vscode', -- adjust as needed
+		--command = '/usr/bin/rust-lldb', -- adjust as needed
+		name = "lldb"
+		}
+
+
+	-- DAP config for Rust / c / c++
+	local dap = require('dap')
+	dap.configurations.rust= {
+		{
+				name = "Launch",
+				type = "lldb",
+				request = "launch",
+				program = function()
+				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+			end,
+			cwd = '${workspaceFolder}',
+			stopOnEntry = false,
+			args = {},
+
+			-- if you change `runInTerminal` to true, you might need to change the yama/ptrace_scope setting:
+			--
+			--    echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+			--
+			-- Otherwise you might get the following error:
+			--
+			--    Error on launch: Failed to attach to the target process
+			--
+			-- But you should be aware of the implications:
+			-- https://www.kernel.org/doc/html/latest/admin-guide/LSM/Yama.html
+			runInTerminal = false,
+			},
+		}
+
+elseif debugger_for_rust == 'gdb' then
+
+	-- Rust / c / c++ : Adapter
+	local dap = require('dap')
+	dap.adapters.rdbg = {
+		type = 'executable',
+		--command = '/home/malolan/Documents/dev/gdb/cpptools-linux-aarch64/extension/debugAdapters/OpenDebugAD7',
+		command = '/home/malolan/Documents/dev/gdb/cpptools-linux/extension/debugAdapters/OpenDebugAD7',
+		name = "rdbg"
+		}
+
+
+	-- DAP config for Rust / c / c++
+	local dap = require('dap')
+	dap.configurations.rust= {
+		{
+				name = "Launch file",
+				type = "rdbg",
+				request = "launch",
+				program = function()
+				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+			end,
+			cwd = '${workspaceFolder}',
+			stopOnEntry = false,
+			},
+		{
+				name = "Attach to gdbserver :1234",
+				type = "rdbg",
+				request = "launch",
+				MIMode = "gdb",
+				miDebuggerServerAddress = "localhost:1234",
+				miDebuggerPath = "/usr/bin/rust-gdb",
+				cwd = '${workspaceFolder}',
+				program = function()
+				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+			end,
+			},
+		}
+
+end
+
+--If you want to use this for c++ and c, add something like this:
+--dap.configurations.c = dap.configurations.rust
+--dap.configurations.cpp = dap.configurations.rust
+
+-- add dap ui config
+require("dapui").setup()
+
+-- debug point highlight for dap
+require('dap')
+vim.fn.sign_define('DapBreakpoint', {text='🛑', texthl='', linehl='', numhl=''})
 
 EOF
+""""""""""""""""""""""""""""""
+" ==> End Lua code
+""""""""""""""""""""""""""""""
