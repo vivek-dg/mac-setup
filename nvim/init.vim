@@ -106,10 +106,13 @@ endif
 " solarized options
 if has("gui_running")
 	set background=light
-	"let g:solarized_termtrans  = 1
-	"let g:solarized_termcolors = 256
-	"colorscheme solarized8_high
-	colorscheme solarized
+	set termguicolors
+
+	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+	"colorscheme gruvbox
+
+	colorscheme solarized8_high
 else
 	set background=light
 
@@ -118,13 +121,11 @@ else
 	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 	"colorscheme gruvbox
 
-	"	colorscheme dracula
+	"colorscheme dracula
 	"colorscheme kalisi
 
 	colorscheme solarized8_high
-	"	colorscheme solarized
-
-	"	colorscheme xcodelighthc
+	"colorscheme xcodelight
 endif
 
 " Using Base16 to control colorscheme
@@ -188,6 +189,11 @@ if isdirectory(expand('~/.vim/plugged/fzf')) || executable('fzf')
 	endif
 endif
 
+
+"""""""""""""""""""""""""""""""""""""""""""
+" ==> Ripgrep for searching file contents
+"""""""""""""""""""""""""""""""""""""""""""
+
 if executable('rg')
 	set grepprg=rg\ --vimgrep\ --smart-case\ --follow
 
@@ -216,6 +222,7 @@ let g:node_host_prog = expand('/usr/local/lib/node_modules/neovim/bin/cli.js')
 " ==> vimtex support for NeoVim
 """"""""""""""""""""""""""""""""""
 "let g:vimtex_compiler_progname = 'nvr'
+
 
 """"""""""""""""""""""""""""""""""
 " ==> AsyncComplete's shortcuts
@@ -283,12 +290,26 @@ set incsearch		" do incremental searching
 set encoding=UTF-8
 "set fileencoding=utf-8
 
-" Backup directory
-let g:backupdir=expand(stdpath('data') . '/backup')
-if !isdirectory(g:backupdir)
-   mkdir(g:backupdir, "p")
+" Move temporary files to a secure location to protect against CVE-2017-1000382
+if exists('$XDG_CACHE_HOME')
+  let &g:directory=$XDG_CACHE_HOME
+else
+  let &g:directory=$HOME . '/.cache'
 endif
-let &backupdir=g:backupdir
+let &g:undodir=&g:directory . '/nvim/undo//'
+let &g:backupdir=&g:directory . '/nvim/backup//'
+let &g:directory.='/nvim/swap//'
+" Create directories if they doesn't exist
+if ! isdirectory(expand(&g:directory))
+  silent! call mkdir(expand(&g:directory), 'p', 0700)
+endif
+if ! isdirectory(expand(&g:backupdir))
+  silent! call mkdir(expand(&g:backupdir), 'p', 0700)
+endif
+if ! isdirectory(expand(&g:undodir))
+  silent! call mkdir(expand(&g:undodir), 'p', 0700)
+endif
+
 
 "For Win32 GUI: remove 't' flag from 'guioptions': no tearoff menu entries
 " let &guioptions = substitute(&guioptions, "t", "", "g")
@@ -358,7 +379,12 @@ else
 	set autoindent		" always set autoindenting on
 endif " has("autocmd")
 
-" Convenient command to see the difference between the current buffer and the
+
+
+""""""""""""""""""""""""""""""
+" ==> Convenient Diffs
+""""""""""""""""""""""""""""""
+" Command to see the difference between the current buffer and the
 " file it was loaded from, thus the changes you made.
 " Only define it when not defined already.
 if !exists(":DiffOrig")
@@ -366,10 +392,15 @@ if !exists(":DiffOrig")
 				\ | wincmd p | diffthis -c 'set diffopt+=iwhite'
 endif
 
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ==>
+" Prevent that the langmap option applies to characters that result from a
+" mapping.  If unset (default), this may break plugins (but it's backward
+" compatible).
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 if has('langmap') && exists('+langnoremap')
-	" Prevent that the langmap option applies to characters that result from a
-	" mapping.  If unset (default), this may break plugins (but it's backward
-	" compatible).
 	set langnoremap
 endif
 
@@ -406,6 +437,7 @@ function! <SID>Preserve(command)
 	call cursor(l, c)
 endfunction
 
+
 "Clean Trailing WhiteSpaces
 function! <SID>ClearWhiteSpaces()
 	call <SID>Preserve("%s/\\s\\+$//e")
@@ -437,6 +469,7 @@ nmap <leader>l :set list!<CR>
 
 " Use the same symbols as TextMate for tabstops and EOLs
 set listchars=tab:▸\ ,eol:¬
+
 
 """"""""""""""""""""""""""""""""
 " ==> tabstop
@@ -494,6 +527,7 @@ augroup CursorLine
 augroup END
 
 
+""""""""""""""""""""""""""""""""""
 " ==> Clearing Registers
 """"""""""""""""""""""""""""""""""
 function! ClearRegisters()
@@ -503,12 +537,12 @@ function! ClearRegisters()
 	endfor
 endfunction
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ==> Copy current line and paste to new buffer in a new window
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 nnoremap <silent> <F3> :redir @a<CR>:normal! Y<CR>:redir END<CR>:vnew<CR>:put! "a<CR>
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ==> open splits to the right and to the bottom
 """""""""""""""""""""""""""""""""""""""""""""""""""""""
 set splitbelow
@@ -517,7 +551,7 @@ set splitright
 set title
 
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ==> Terminal mode key map for Neovim
 """""""""""""""""""""""""""""""""""""""""""""""""""""""
 "To map <Esc> to exit terminal-mode:
@@ -582,8 +616,9 @@ require'lualine'.setup {
 	extensions = {}
 	}
 
+
 -- Attaches to every FileType mode
-require 'colorizer'.setup()
+-- require 'colorizer'.setup()
 
 
 -- Rust tools
@@ -697,3 +732,4 @@ EOF
 """"""""""""""""""""""""""""""
 " ==> End Lua code
 """"""""""""""""""""""""""""""
+
