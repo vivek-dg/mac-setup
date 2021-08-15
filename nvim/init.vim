@@ -139,6 +139,11 @@ endif
 " ==> end colorscheme
 """""""""""""""""""""""""""""""""
 
+""""""""""""""""""""""
+" Git markers update
+""""""""""""""""""""""
+let g:gitgutter_realtime = 1
+set updatetime=250
 
 " Use fontawesome icons as signs
 let g:gitgutter_sign_added = ''
@@ -146,6 +151,7 @@ let g:gitgutter_sign_modified = ''
 let g:gitgutter_sign_removed = ''
 let g:gitgutter_sign_removed_first_line = ''
 let g:gitgutter_sign_modified_removed = ''
+
 
 " Always show the status line
 "set laststatus=2
@@ -155,14 +161,17 @@ set number " show the number for the line where the cursor lives
 set relativenumber	" the line numbers will be relative
 set signcolumn=yes
 
-
+""""""""""""""""""""""""""""""""
+" ==> Fuzzy Finders for search
+""""""""""""""""""""""""""""""""
 " Find files using Telescope command-line sugar.
 nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
 nnoremap <leader>fb <cmd>Telescope buffers<cr>
 nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 
-if isdirectory(expand('~/.vim/plugged/fzf')) || executable('fzf')
+
+if isdirectory(expand(stdpath('data').'/plugged/fzf') || expand('~/.vim/plugged/fzf')) || executable('fzf')
 	" PLUGIN: FZF
 	nnoremap <silent> <leader>b   :Buffers<CR>
 	nnoremap <silent> <C-p>       :Files<CR>
@@ -185,6 +194,7 @@ if isdirectory(expand('~/.vim/plugged/fzf')) || executable('fzf')
 		command! -bang -complete=dir -nargs=? FD
 					\ call fzf#run(fzf#wrap('fd', {'source':'fd -td', 'dir': <q-args>, 'sink': 'cd'}, <bang>0))
 
+		" Switch working directories fast!
 		nnoremap <silent> <leader>fd :FD ~<CR>
 	endif
 endif
@@ -222,7 +232,6 @@ let g:node_host_prog = expand('/usr/local/lib/node_modules/neovim/bin/cli.js')
 " ==> vimtex support for NeoVim
 """"""""""""""""""""""""""""""""""
 "let g:vimtex_compiler_progname = 'nvr'
-
 
 """"""""""""""""""""""""""""""""""
 " ==> AsyncComplete's shortcuts
