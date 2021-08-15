@@ -283,6 +283,13 @@ set incsearch		" do incremental searching
 set encoding=UTF-8
 "set fileencoding=utf-8
 
+" Backup directory
+let g:backupdir=expand(stdpath('data') . '/backup')
+if !isdirectory(g:backupdir)
+   mkdir(g:backupdir, "p")
+endif
+let &backupdir=g:backupdir
+
 "For Win32 GUI: remove 't' flag from 'guioptions': no tearoff menu entries
 " let &guioptions = substitute(&guioptions, "t", "", "g")
 
