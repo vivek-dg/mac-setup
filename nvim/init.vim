@@ -41,8 +41,10 @@ Plug 'rust-lang/rust.vim'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
-" Source Control
+" Source Control - symbols
 Plug 'airblade/vim-gitgutter'
+" Source control - interaction
+Plug 'tpope/vim-fugitive'
 
 " File Navigation
 Plug 'justinmk/vim-dirvish'
@@ -66,6 +68,9 @@ Plug 'dstein64/vim-startuptime'
 
 Plug 'neovim/nvim-lspconfig'
 Plug 'simrat39/rust-tools.nvim'
+
+" Highlighting for toml files
+Plug 'cespare/vim-toml'
 
 " Optional dependencies
 Plug 'nvim-lua/popup.nvim'
