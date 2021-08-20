@@ -658,7 +658,7 @@ if debugger_for_rust == 'lldb' then
 	local rust_adapter_command = '/usr/bin/lldb-vscode'
 
 	--MacOS
-	if vim.fn.has('macunix') then
+	if vim.fn.has('mac') == 1 then
 		print "mac detected..."
 		--Brew llvm : works!
 		-- should try with   $(brew --prefix llvm)/bin/lldb-vscode and $(brew --prefix llvm)/bin/lldb
@@ -728,7 +728,7 @@ elseif debugger_for_rust == 'gdb' then
 	local rust_mimode = 'gdb'
 
 	-- MacOS
-	if vim.fn.has('macunix') then
+	if vim.fn.has('mac') == 1 then
 
 		-- WORKS! with OpenDebugAD7, lldb-mi and mimode = 'lldb'
 		rust_adapter_command = vim.fn.expand('~/.vscode/extensions/ms-vscode.cpptools-1.5.1/debugAdapters/OpenDebugAD7')
