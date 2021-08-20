@@ -306,22 +306,22 @@ set encoding=UTF-8
 
 " Move temporary files to a secure location to protect against CVE-2017-1000382
 if exists('$XDG_CACHE_HOME')
-  let &g:directory=$XDG_CACHE_HOME
+	let &g:directory=$XDG_CACHE_HOME
 else
-  let &g:directory=$HOME . '/.cache'
+	let &g:directory=$HOME . '/.cache'
 endif
 let &g:undodir=&g:directory . '/nvim/undo//'
 let &g:backupdir=&g:directory . '/nvim/backup//'
 let &g:directory.='/nvim/swap//'
 " Create directories if they doesn't exist
 if ! isdirectory(expand(&g:directory))
-  silent! call mkdir(expand(&g:directory), 'p', 0700)
+	silent! call mkdir(expand(&g:directory), 'p', 0700)
 endif
 if ! isdirectory(expand(&g:backupdir))
-  silent! call mkdir(expand(&g:backupdir), 'p', 0700)
+	silent! call mkdir(expand(&g:backupdir), 'p', 0700)
 endif
 if ! isdirectory(expand(&g:undodir))
-  silent! call mkdir(expand(&g:undodir), 'p', 0700)
+	silent! call mkdir(expand(&g:undodir), 'p', 0700)
 endif
 
 
@@ -648,16 +648,39 @@ require('rust-tools').setup()
 require('dap').set_log_level('DEBUG')
 
 -- set this variable to lldb or gdb according your preference
-local debugger_for_rust = 'gdb'
+-- setrust
+local debugger_for_rust = 'lldb'
 
 if debugger_for_rust == 'lldb' then
+
+	-- lldb paths
+	-- Linux
+	local rust_adapter_command = '/usr/bin/lldb-vscode'
+
+	--MacOS
+	if vim.fn.has('macunix') then
+		print "mac detected..."
+		--Brew llvm : works!
+		-- should try with   $(brew --prefix llvm)/bin/lldb-vscode and $(brew --prefix llvm)/bin/lldb
+		rust_adapter_command = '/usr/local/opt/llvm/bin/lldb-vscode'
+
+
+		--other midebugger values that work
+		--rust_midebugger_path = '/usr/local/opt/llvm/bin/lldb'
+		--Make sure it's signed
+		--rust_midebugger_path = vim.fn.expand('~/.cargo/bin/rust-lldb')
+		--rust_midebugger_path = vim.fn.expand('~/.cargo/bin/rust-gdb')
+
+		--print ("adapter: " .. rust_adapter_command)
+		--print ("debugger: " .. rust_midebugger_path)
+	end
+
 
 	-- Rust / c / c++ : Adapter
 	local dap = require('dap')
 	dap.adapters.lldb = {
 		type = 'executable',
-		command = '/usr/bin/lldb-vscode', -- adjust as needed
-		--command = '/usr/bin/rust-lldb', -- adjust as needed
+		command = rust_adapter_command,
 		name = "lldb"
 		}
 
@@ -670,7 +693,7 @@ if debugger_for_rust == 'lldb' then
 				type = "lldb",
 				request = "launch",
 				program = function()
-				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/target/debug/', 'file')
 			end,
 			cwd = '${workspaceFolder}',
 			stopOnEntry = false,
@@ -687,18 +710,41 @@ if debugger_for_rust == 'lldb' then
 			-- But you should be aware of the implications:
 			-- https://www.kernel.org/doc/html/latest/admin-guide/LSM/Yama.html
 			runInTerminal = false,
-			},
-		}
+			--miDebuggerPath = rust_midebugger_path,
+			MIMode = "lldb",
+
+			--trying adding for codelldb
+			--sourceLanguages = {"rust"}
+
+		},
+	}
 
 elseif debugger_for_rust == 'gdb' then
 
+	-- gdb paths
+	-- Linux
+	local rust_adapter_command = vim.fn.expand('~/Documents/dev/gdb/cpptools-linux/extension/debugAdapters/OpenDebugAD7')
+	local rust_midebugger_path = '/usr/bin/rust-gdb'
+	local rust_mimode = 'gdb'
+
+	-- MacOS
+	if vim.fn.has('macunix') then
+
+		-- WORKS! with OpenDebugAD7, lldb-mi and mimode = 'lldb'
+		rust_adapter_command = vim.fn.expand('~/.vscode/extensions/ms-vscode.cpptools-1.5.1/debugAdapters/OpenDebugAD7')
+		rust_midebugger_path = vim.fn.expand('~/.vscode/extensions/ms-vscode.cpptools-1.5.1/debugAdapters/lldb-mi/bin/lldb-mi')
+
+		--rust_midebugger_path= vim.fn.expand('~/.cargo/bin/rust-gdb')
+		rust_mimode = 'lldb'
+
+	end
+
 	-- Rust / c / c++ : Adapter
 	local dap = require('dap')
-	dap.adapters.rdbg = {
+	dap.adapters.cppdbg = {
 		type = 'executable',
-		--command = '/home/malolan/Documents/dev/gdb/cpptools-linux-aarch64/extension/debugAdapters/OpenDebugAD7',
-		command = '/home/malolan/Documents/dev/gdb/cpptools-linux/extension/debugAdapters/OpenDebugAD7',
-		name = "rdbg"
+		command = rust_adapter_command,
+		name = "cppdbg"
 		}
 
 
@@ -707,29 +753,33 @@ elseif debugger_for_rust == 'gdb' then
 	dap.configurations.rust= {
 		{
 				name = "Launch file",
-				type = "rdbg",
+				type = "cppdbg",
 				request = "launch",
+				stopOnEntry = false,
+				cwd = '${workspaceFolder}',
+				MIMode = rust_mimode,
+				miDebuggerPath = rust_midebugger_path,
+				externalConsole = false,
 				program = function()
-				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/target/debug/', 'file')
 			end,
-			cwd = '${workspaceFolder}',
-			stopOnEntry = false,
-			},
+		},
 		{
 				name = "Attach to gdbserver :1234",
-				type = "rdbg",
+				type = "cppdbg",
 				request = "launch",
-				MIMode = "gdb",
+				MIMode = rust_mimode,
 				miDebuggerServerAddress = "localhost:1234",
-				miDebuggerPath = "/usr/bin/rust-gdb",
+				miDebuggerPath = rust_midebugger_path,
 				cwd = '${workspaceFolder}',
 				program = function()
 				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
 			end,
-			},
-		}
+		},
+	}
 
 end
+
 
 --If you want to use this for c++ and c, add something like this:
 --dap.configurations.c = dap.configurations.rust
@@ -737,10 +787,6 @@ end
 
 -- add dap ui config
 require("dapui").setup()
-
--- debug point highlight for dap
-require('dap')
-vim.fn.sign_define('DapBreakpoint', {text='🛑', texthl='', linehl='', numhl=''})
 
 EOF
 """"""""""""""""""""""""""""""
