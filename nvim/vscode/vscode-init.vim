@@ -30,60 +30,67 @@ Plug 'lifepillar/vim-solarized8'
 
 " Colorizer
 Plug 'norcalli/nvim-colorizer.lua'
-" Comment code
-Plug 'tpope/vim-commentary'
 
 " Java syntax
 Plug 'uiiaoo/java-syntax.vim'
+
+" Rust support
+Plug 'rust-lang/rust.vim'
 
 " Search Interfaces
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
-" Telescope
-Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim'
-
 " Source Control - symbols
 Plug 'airblade/vim-gitgutter'
 " Source control - interaction
 Plug 'tpope/vim-fugitive'
+
 " File Navigation
 Plug 'justinmk/vim-dirvish'
+
 " Tabular
 Plug 'godlygeek/tabular'
+
 "Startup time
 Plug 'dstein64/vim-startuptime'
-" Latex
-Plug 'lervag/vimtex'
-" Status Line
-Plug 'hoob3rt/lualine.nvim'
-" Icons for vim
-Plug 'ryanoasis/vim-devicons'
-" Markdown support
-Plug 'iamcco/markdown-preview.nvim', {'do': 'cd app && yarn install'}
 
-" Rust support
-Plug 'rust-lang/rust.vim'
+" LSP enable
+"Plug 'prabirshrestha/vim-lsp'
+"Plug 'mattn/vim-lsp-settings'
+
+" Enable autocomplete
+"Plug 'prabirshrestha/asyncomplete.vim'
+"Plug 'prabirshrestha/asyncomplete-lsp.vim'
+"
+" Latex
+"Plug 'lervag/vimtex'
+
+Plug 'neovim/nvim-lspconfig'
+Plug 'simrat39/rust-tools.nvim'
+
 " Highlighting for toml files
 Plug 'cespare/vim-toml'
+
+" Optional dependencies
+Plug 'nvim-lua/popup.nvim'
+" Telescope
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
 
 " Debugging (needs plenary from above as well)
 Plug 'mfussenegger/nvim-dap'
 Plug 'rcarriga/nvim-dap-ui'
 Plug 'nvim-telescope/telescope-dap.nvim'
 
-" LSP configs that use native Neovim LSP engine
-Plug 'neovim/nvim-lspconfig'
-" LSP Extensions
-Plug 'nvim-lua/lsp_extensions.nvim'
+" Status Line
+Plug 'hoob3rt/lualine.nvim'
 
-Plug 'simrat39/rust-tools.nvim'
-" Optional dependencies
-Plug 'nvim-lua/popup.nvim'
-Plug 'hrsh7th/nvim-compe'
-" Snippet engine to handle LSP snippets
-Plug 'hrsh7th/vim-vsnip'
+" Icons for vim
+Plug 'ryanoasis/vim-devicons'
+
+" Markdown support
+Plug 'iamcco/markdown-preview.nvim', {'do': 'cd app && yarn install'}
 
 call plug#end()
 
@@ -96,46 +103,6 @@ endif
 " ==> end Vim-Plug
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-
-""""""""""""""""""""""""""""""""""""""""
-" ==> color scheme
-""""""""""""""""""""""""""""""""""""""""
-
-" solarized options
-if has("gui_running")
-	set background=light
-	set termguicolors
-
-	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-	"colorscheme gruvbox
-
-	colorscheme solarized8_high
-else
-	set background=light
-
-	set termguicolors
-	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-	"colorscheme gruvbox
-
-	"colorscheme dracula
-	"colorscheme kalisi
-
-	colorscheme solarized8_high
-	"colorscheme xcodelight
-endif
-
-" Using Base16 to control colorscheme
-"if filereadable(expand("~/.vimrc_background"))
-"    let base16colorspace=256
-"    source ~/.vimrc_background
-"endif
-
-
-"""""""""""""""""""""""""""""""""
-" ==> end colorscheme
-"""""""""""""""""""""""""""""""""
 
 """"""""""""""""""""""
 " Git markers update
@@ -150,9 +117,6 @@ let g:gitgutter_sign_removed = ''
 let g:gitgutter_sign_removed_first_line = ''
 let g:gitgutter_sign_modified_removed = ''
 
-
-" Always show the status line
-"set laststatus=2
 
 " set the line number
 set number " show the number for the line where the cursor lives
@@ -218,21 +182,13 @@ endif
 """"""""""""""""""""""""""""""""""
 " ==> Python support for NeoVim
 """"""""""""""""""""""""""""""""""
-let g:python_host_prog = expand('~/.pyenv/shims/python2')
-let g:python3_host_prog = expand('~/.pyenv/shims/python3')
+let g:python_host_prog = expand('/.pyenv/shims/python2')
+let g:python3_host_prog = expand('/.pyenv/shims/python3')
 
 """"""""""""""""""""""""""""""""""
 " ==> Node support for NeoVim
 """"""""""""""""""""""""""""""""""
 let g:node_host_prog = expand('/usr/local/lib/node_modules/neovim/bin/cli.js')
-
-
-
-" Java syntax 'uiiaoo/java-syntax.vim'
-highlight link JavaIdentifier NONE
-
-" Avoid showing extra messages when using completion
-set shortmess+=c
 
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
@@ -318,10 +274,6 @@ if has("autocmd")
 					\ if line("'\"") >= 1 && line("'\"") <= line("$") |
 					\   exe "normal! g`\"" |
 					\ endif
-
-
-		" set highlighted yank for Neovim
-		au TextYankPost * silent! lua vim.highlight.on_yank{higroup="IncSearch", timeout=700}
 	augroup END
 
 	" Enable file type detection
@@ -476,21 +428,6 @@ endfunction
 " You'll need to use the ftplugin for programming language specific tabbing
 set ts=4 sts=4 sw=4 noexpandtab
 
-" Show cursor line
-set cursorline
-" Set line numbering to red background:
-"highlight CursorLineNR ctermbg=red
-
-" Toggle cursor line and column
-nnoremap <Leader>cur :set cursorline! cursorcolumn!<CR>
-
-" Cursor Line - show only on one file
-augroup CursorLine
-	au!
-	au VimEnter,WinEnter,BufWinEnter * setlocal cursorline
-	au WinLeave * setlocal nocursorline
-augroup END
-
 
 """"""""""""""""""""""""""""""""""
 " ==> Clearing Registers
@@ -515,62 +452,3 @@ set splitright
 
 set title
 
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" ==> Terminal mode key map for Neovim
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"To map <Esc> to exit terminal-mode:
-tnoremap <Esc> <C-\><C-n>
-
-"To simulate |i_CTRL-R| in terminal-mode:
-tnoremap <expr> <C-R> '<C-\><C-N>"'.nr2char(getchar()).'pi'
-
-"""""""""""""""""""""""""""""
-" ==> Setup the status line
-"""""""""""""""""""""""""""""
-lua << EOF
-
--- Lualine setup for status line
-
-require'lualine'.setup {
-	options = {
-		icons_enabled = true,
-		theme = 'dracula',
-		--component_separators = {'', ''},
-		--section_separators = {'', ''},
-		component_separators = '',
-		section_separators = '',
-		disabled_filetypes = {}
-		},
-	sections = {
-		lualine_a = {'mode'},
-		lualine_b = {'branch'},
-		lualine_c = {'filename'},
-		lualine_x = {'encoding', 'fileformat', 'filetype'},
-		lualine_y = {'progress'},
-		lualine_z = {'location'}
-		},
-	inactive_sections = {
-		lualine_a = {},
-		lualine_b = {},
-		lualine_c = {'filename'},
-		lualine_x = {'location'},
-		lualine_y = {},
-		lualine_z = {}
-		},
-	tabline = {},
-	extensions = {}
-	}
-
-
--- Attaches to every FileType mode
--- require 'colorizer'.setup()
-
-EOF
-
-source ~/.config/nvim/nvim-dap/nvim-dap_rust_partial.vim
-
-source ~/.config/nvim/vimtex/vimtex_partial.vim
-
-source ~/.config/nvim/nvim-lsp/nvim-lsp_rust-tools.vim
-" source ~/.config/nvim/nvim-lsp/nvim-lsp_coq.vim

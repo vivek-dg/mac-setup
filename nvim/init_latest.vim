@@ -36,30 +36,36 @@ Plug 'tpope/vim-commentary'
 " Java syntax
 Plug 'uiiaoo/java-syntax.vim'
 
+" Rust support
+Plug 'rust-lang/rust.vim'
+
 " Search Interfaces
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-
-" Telescope
-Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim'
 
 " Source Control - symbols
 Plug 'airblade/vim-gitgutter'
 " Source control - interaction
 Plug 'tpope/vim-fugitive'
+
 " File Navigation
 Plug 'justinmk/vim-dirvish'
+
 " Tabular
 Plug 'godlygeek/tabular'
+
 "Startup time
 Plug 'dstein64/vim-startuptime'
+
 " Latex
 Plug 'lervag/vimtex'
+
 " Status Line
 Plug 'hoob3rt/lualine.nvim'
+
 " Icons for vim
 Plug 'ryanoasis/vim-devicons'
+
 " Markdown support
 Plug 'iamcco/markdown-preview.nvim', {'do': 'cd app && yarn install'}
 
@@ -68,22 +74,23 @@ Plug 'rust-lang/rust.vim'
 " Highlighting for toml files
 Plug 'cespare/vim-toml'
 
+" Telescope
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+
 " Debugging (needs plenary from above as well)
 Plug 'mfussenegger/nvim-dap'
 Plug 'rcarriga/nvim-dap-ui'
 Plug 'nvim-telescope/telescope-dap.nvim'
 
+
 " LSP configs that use native Neovim LSP engine
 Plug 'neovim/nvim-lspconfig'
-" LSP Extensions
-Plug 'nvim-lua/lsp_extensions.nvim'
 
-Plug 'simrat39/rust-tools.nvim'
-" Optional dependencies
-Plug 'nvim-lua/popup.nvim'
 Plug 'hrsh7th/nvim-compe'
 " Snippet engine to handle LSP snippets
 Plug 'hrsh7th/vim-vsnip'
+
 
 call plug#end()
 
@@ -525,6 +532,25 @@ tnoremap <Esc> <C-\><C-n>
 "To simulate |i_CTRL-R| in terminal-mode:
 tnoremap <expr> <C-R> '<C-\><C-N>"'.nr2char(getchar()).'pi'
 
+
+""""""""""""""""""""""""""""""""""
+" ==> DAP shortcuts
+""""""""""""""""""""""""""""""""""
+nnoremap <silent> <F5> :lua require'dap'.continue()<CR>
+nnoremap <silent> <F10> :lua require'dap'.step_over()<CR>
+nnoremap <silent> <F11> :lua require'dap'.step_into()<CR>
+nnoremap <silent> <F12> :lua require'dap'.step_out()<CR>
+nnoremap <silent> <leader>dso :lua require'dap'.step_over()<CR>
+nnoremap <silent> <leader>dsi :lua require'dap'.step_into()<CR>
+nnoremap <silent> <leader>dsu :lua require'dap'.step_out()<CR>
+nnoremap <silent> <leader>b :lua require'dap'.toggle_breakpoint()<CR>
+nnoremap <silent> <leader>B :lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>
+nnoremap <silent> <leader>lp :lua require'dap'.set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>
+nnoremap <silent> <leader>dr :lua require'dap'.repl.open()<CR>
+nnoremap <silent> <leader>dl :lua require'dap'.run_last()<CR>
+
+
+
 """""""""""""""""""""""""""""
 " ==> Setup the status line
 """""""""""""""""""""""""""""
@@ -566,11 +592,218 @@ require'lualine'.setup {
 -- Attaches to every FileType mode
 -- require 'colorizer'.setup()
 
+--------------------------------------------------------------------
+-- DAP tool for debugging - Needs individual setup for each language
+-- Requires 1. Adapter per language
+--			2. Config per language
+--------------------------------------------------------------------
+
+require('dap').set_log_level('DEBUG')
+
+-- set this variable to lldb or gdb according your preference
+-- setrust
+local debugger_for_rust = 'lldb'
+
+if debugger_for_rust == 'lldb' then
+
+	-- lldb paths
+	-- Linux
+	local rust_adapter_command = '/usr/bin/lldb-vscode'
+
+	--MacOS
+	if vim.fn.has('mac') == 1 then
+		print "mac detected..."
+		--Brew llvm : works!
+		-- should try with   $(brew --prefix llvm)/bin/lldb-vscode and $(brew --prefix llvm)/bin/lldb
+		rust_adapter_command = '/usr/local/opt/llvm/bin/lldb-vscode'
+
+
+		--other midebugger values that work
+		--rust_midebugger_path = '/usr/local/opt/llvm/bin/lldb'
+		--Make sure it's signed
+		--rust_midebugger_path = vim.fn.expand('~/.cargo/bin/rust-lldb')
+		--rust_midebugger_path = vim.fn.expand('~/.cargo/bin/rust-gdb')
+
+		--print ("adapter: " .. rust_adapter_command)
+		--print ("debugger: " .. rust_midebugger_path)
+	end
+
+
+	-- Rust / c / c++ : Adapter
+	local dap = require('dap')
+	dap.adapters.lldb = {
+		type = 'executable',
+		command = rust_adapter_command,
+		name = "lldb"
+		}
+
+
+	-- DAP config for Rust / c / c++
+	local dap = require('dap')
+	dap.configurations.rust= {
+		{
+				name = "Launch",
+				type = "lldb",
+				request = "launch",
+				program = function()
+				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/target/debug/', 'file')
+			end,
+			cwd = '${workspaceFolder}',
+			stopOnEntry = false,
+			args = {},
+
+			-- if you change `runInTerminal` to true, you might need to change the yama/ptrace_scope setting:
+			--
+			--    echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+			--
+			-- Otherwise you might get the following error:
+			--
+			--    Error on launch: Failed to attach to the target process
+			--
+			-- But you should be aware of the implications:
+			-- https://www.kernel.org/doc/html/latest/admin-guide/LSM/Yama.html
+			runInTerminal = false,
+			--miDebuggerPath = rust_midebugger_path,
+			MIMode = "lldb",
+
+			--trying adding for codelldb
+			--sourceLanguages = {"rust"}
+
+			},
+		}
+
+elseif debugger_for_rust == 'gdb' then
+
+	-- gdb paths
+	-- Linux
+	local rust_adapter_command = vim.fn.expand('~/Documents/dev/gdb/cpptools-linux/extension/debugAdapters/OpenDebugAD7')
+	local rust_midebugger_path = '/usr/bin/rust-gdb'
+	local rust_mimode = 'gdb'
+
+	-- MacOS
+	if vim.fn.has('mac') == 1 then
+
+		-- WORKS! with OpenDebugAD7, lldb-mi and mimode = 'lldb'
+		rust_adapter_command = vim.fn.expand('~/.vscode/extensions/ms-vscode.cpptools-1.5.1/debugAdapters/OpenDebugAD7')
+		rust_midebugger_path = vim.fn.expand('~/.vscode/extensions/ms-vscode.cpptools-1.5.1/debugAdapters/lldb-mi/bin/lldb-mi')
+
+		--rust_midebugger_path= vim.fn.expand('~/.cargo/bin/rust-gdb')
+		rust_mimode = 'lldb'
+
+	end
+
+	-- Rust / c / c++ : Adapter
+	local dap = require('dap')
+	dap.adapters.cppdbg = {
+		type = 'executable',
+		command = rust_adapter_command,
+		name = "cppdbg"
+		}
+
+
+	-- DAP config for Rust / c / c++
+	local dap = require('dap')
+	dap.configurations.rust= {
+		{
+				name = "Launch file",
+				type = "cppdbg",
+				request = "launch",
+				stopOnEntry = false,
+				cwd = '${workspaceFolder}',
+				MIMode = rust_mimode,
+				miDebuggerPath = rust_midebugger_path,
+				externalConsole = false,
+				program = function()
+				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/target/debug/', 'file')
+			end,
+			},
+		{
+				name = "Attach to gdbserver :1234",
+				type = "cppdbg",
+				request = "launch",
+				MIMode = rust_mimode,
+				miDebuggerServerAddress = "localhost:1234",
+				miDebuggerPath = rust_midebugger_path,
+				cwd = '${workspaceFolder}',
+				program = function()
+				return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+			end,
+			},
+		}
+
+end
+
+
+--If you want to use this for c++ and c, add something like this:
+--dap.configurations.c = dap.configurations.rust
+--dap.configurations.cpp = dap.configurations.rust
+
+-- add dap ui config
+require("dapui").setup()
+
 EOF
 
-source ~/.config/nvim/nvim-dap/nvim-dap_rust_partial.vim
 
-source ~/.config/nvim/vimtex/vimtex_partial.vim
+""""""""""""""""""""""""""""""""""
+" ==> vimtex support for NeoVim
+""""""""""""""""""""""""""""""""""
+"let g:vimtex_compiler_progname = 'nvr'
+" VimTeX options
+ let g:vimtex_view_method = "skim"
+let g:vimtex_view_general_viewer = '/Applications/Skim.app/Contents/SharedSupport/displayline'
+let g:vimtex_view_general_options = '-r @line @pdf @tex'
 
-source ~/.config/nvim/nvim-lsp/nvim-lsp_rust-tools.vim
-" source ~/.config/nvim/nvim-lsp/nvim-lsp_coq.vim
+augroup vimtex_mac
+    autocmd!
+    autocmd User VimtexEventCompileSuccess call UpdateSkim()
+augroup END
+
+function! UpdateSkim() abort
+    let l:out = b:vimtex.out()
+    let l:src_file_path = expand('%:p')
+    let l:cmd = [g:vimtex_view_general_viewer, '-r']
+
+    if !empty(system('pgrep Skim'))
+    call extend(l:cmd, ['-g'])
+    endif
+
+    call jobstart(l:cmd + [line('.'), l:out, l:src_file_path])
+endfunction
+
+
+" TOC settings for VimTeX
+let g:vimtex_toc_config = {
+      \ 'name' : 'TOC',
+      \ 'layers' : ['content', 'todo', 'include'],
+      \ 'resize' : 1,
+      \ 'split_width' : 50,
+      \ 'todo_sorted' : 0,
+      \ 'show_help' : 1,
+      \ 'show_numbers' : 1,
+      \ 'mode' : 2,
+      \}
+
+
+function! SetServerName()
+  if has('win32')
+    let nvim_server_file = $TEMP . "/curnvimserver.txt"
+  else
+    let nvim_server_file = "/tmp/curnvimserver.txt"
+  endif
+  let cmd = printf("echo %s > %s", v:servername, nvim_server_file)
+  call system(cmd)
+endfunction
+
+augroup vimtex_common
+    autocmd!
+    autocmd FileType tex call SetServerName()
+augroup END
+
+""""""""""""""""""""""""""""""""""
+" ==> END vimtex support for NeoVim
+""""""""""""""""""""""""""""""""""
+
+
+
+"source ~/.config/nvim/nvim-lsp/nvim-lsp_rust-tools.vim
+source ~/.config/nvim/nvim-lsp/nvim-lsp_compe.vim
